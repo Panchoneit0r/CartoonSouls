@@ -53,8 +53,7 @@ class ACartoonSoulsCharacter : public ACharacter
 	class UAnimMontage* DamageAnimation;	
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	class UAnimMontage* AttackAnimation;
-	
+	TArray<UAnimMontage*> AttackAnimations;
 	
 public:
 	ACartoonSoulsCharacter();
@@ -66,8 +65,9 @@ protected:
 
 	void Roll();
 	
-	bool canAttack, canRoll;
+	bool isRolling;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
 	int coutAttack;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
@@ -101,6 +101,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Health")
 	void FinishRoll();
+
+	UFUNCTION(BlueprintCallable, Category="Health")
+	void PlusAttack();
 	
 	UFUNCTION(BlueprintPure, Category="Health")
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; } 
@@ -111,6 +114,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Health")
 	void SetCurrentHealth(float healthValue);
+
+	UFUNCTION(BlueprintPure, Category="Health")
+	FORCEINLINE float GetCoutAttack() const { return coutAttack; }
+
+	UFUNCTION(BlueprintCallable, Category="Attack")
+	void SetCoutAttack(float counthValue);
 	
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

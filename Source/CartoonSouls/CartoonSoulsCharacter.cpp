@@ -49,9 +49,8 @@ ACartoonSoulsCharacter::ACartoonSoulsCharacter()
 	
 	MaxHealth = 100.0f;
 	CurrentHealth = MaxHealth;
-
-	canAttack = true;
-	canRoll = true;
+	
+	isRolling = false;
 	coutAttack = 0;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
@@ -90,13 +89,24 @@ void ACartoonSoulsCharacter::Damage(float damageTake)
 
 void ACartoonSoulsCharacter::FinishAttack()
 {
-	canRoll = true;
-	coutAttack = 0;
+	SetCoutAttack(0);
+	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
 }
 
 void ACartoonSoulsCharacter::FinishRoll()
 {
-	canAttack = true;
+	isRolling = false;
+}
+
+void ACartoonSoulsCharacter::PlusAttack()
+{
+	int plus = GetCoutAttack() + 1;
+	SetCoutAttack(plus);
+}
+
+void ACartoonSoulsCharacter::SetCoutAttack(float countValue)
+{
+	coutAttack = countValue;
 }
 
 void ACartoonSoulsCharacter::SetCurrentHealth(float healthValue)
@@ -132,17 +142,18 @@ void ACartoonSoulsCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 void ACartoonSoulsCharacter::Attack()
 {
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		if (AnimInstance != nullptr && !AnimInstance->IsAnyMontagePlaying() && !GetCharacterMovement()->IsFalling())
+		if (AnimInstance != nullptr && !isRolling && !GetCharacterMovement()->IsFalling())
 		{
-			AnimInstance->Montage_Play(AttackAnimation, 1.0f);
-			if (coutAttack >= 2)
+			GetCharacterMovement()->MaxWalkSpeed = 0.0f;
+			AnimInstance->Montage_Play(AttackAnimations[coutAttack], 0.8f);
+			/*if (coutAttack >= 2)
 			{
 				coutAttack = 0;		
 			}
 			else
 			{
 				coutAttack++;
-			}
+			}*/
 		}
 }
 
@@ -153,12 +164,12 @@ void ACartoonSoulsCharacter::Roll()
 	
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		if (AnimInstance != nullptr && !AnimInstance->IsAnyMontagePlaying() && !GetCharacterMovement()->IsFalling())
-
 		{
+			isRolling = true;
 			AnimInstance->Montage_Play(RollAnimation, 1.0f);
 			FVector Force;
-			Force.X = GetVelocity().X;
-			Force.Y = GetVelocity().Y;
+			Force.X = GetVelocity().X * 2.5f;
+			Force.Y = GetVelocity().Y * 2.5f;
 			Force.Z = 0;
 			LaunchCharacter(Force, true, true);
 		}

@@ -46,10 +46,18 @@ ACartoonSoulsCharacter::ACartoonSoulsCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
-
+	
+	MaxHealth = 100.0f;
+	CurrentHealth = MaxHealth;
+	
+	isRolling = false;
+	canAttack = true;
+	coutAttack = 0;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
+
+
 
 void ACartoonSoulsCharacter::BeginPlay()
 {
@@ -64,6 +72,48 @@ void ACartoonSoulsCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+}
+
+void ACartoonSoulsCharacter::Damage(float damageTake)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance != nullptr)
+	{
+		SetCurrentHealth(CurrentHealth - damageTake);
+		if (CurrentHealth <= 0)
+		{
+			AnimInstance->Montage_Play(DeathAnimation, 1.0f);
+		}
+	}
+}
+
+void ACartoonSoulsCharacter::FinishAttack()
+{
+	SetCoutAttack(0);
+	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
+	canAttack = true;
+}
+
+void ACartoonSoulsCharacter::FinishRoll()
+{
+	isRolling = false;
+}
+
+void ACartoonSoulsCharacter::PlusAttack()
+{
+	int plus = GetCoutAttack() + 1;
+	SetCoutAttack(plus);
+	canAttack = true;
+}
+
+void ACartoonSoulsCharacter::SetCoutAttack(float countValue)
+{
+	coutAttack = countValue;
+}
+
+void ACartoonSoulsCharacter::SetCurrentHealth(float healthValue)
+{
+	CurrentHealth = FMath::Clamp(healthValue, 0.f, MaxHealth);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,10 +134,50 @@ void ACartoonSoulsCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACartoonSoulsCharacter::Look);
 
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ACartoonSoulsCharacter::Attack);
+
+		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Triggered, this, &ACartoonSoulsCharacter::Roll);
+
 	}
 
 }
+void ACartoonSoulsCharacter::Attack()
+{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance != nullptr && !isRolling && !GetCharacterMovement()->IsFalling() && canAttack)
+		{
+			canAttack = false;
+			GetCharacterMovement()->MaxWalkSpeed = 0.0f;
+			AnimInstance->Montage_Play(AttackAnimations[coutAttack], 1.5f);
+			/*if (coutAttack >= 2)
+			{
+				coutAttack = 0;		
+			}
+			else
+			{
+				coutAttack++;
+			}*/
+		}
+}
 
+void ACartoonSoulsCharacter::Roll()
+{
+
+	//if(!canAttack && !GetCharacterMovement()->IsFalling() && canRoll)
+	
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance != nullptr && !AnimInstance->IsAnyMontagePlaying() && !GetCharacterMovement()->IsFalling())
+		{
+			isRolling = true;
+			AnimInstance->Montage_Play(RollAnimation, 1.0f);
+			FVector Force;
+			Force.X = GetVelocity().X * 2.5f;
+			Force.Y = GetVelocity().Y * 2.5f;
+			Force.Z = 0;
+			LaunchCharacter(Force, true, true);
+		}
+	
+}
 void ACartoonSoulsCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D

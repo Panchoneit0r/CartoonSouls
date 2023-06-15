@@ -36,13 +36,47 @@ class ACartoonSoulsCharacter : public ACharacter
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* RollAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* AttackAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	class UAnimMontage* DeathAnimation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	class UAnimMontage* RollAnimation;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	class UAnimMontage* DamageAnimation;	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	TArray<UAnimMontage*> AttackAnimations;
+	
 public:
 	ACartoonSoulsCharacter();
 	
 
 protected:
+	
+	void Attack();
 
+	void Roll();
+	
+	bool isRolling, canAttack;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	int coutAttack;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Health")
+	float MaxHealth;
+
+	/** The player's current health. When reduced to 0, they are considered dead.*/
+	UPROPERTY(EditDefaultsOnly, Category = "Health")
+	float CurrentHealth;
+	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
@@ -58,6 +92,35 @@ protected:
 	virtual void BeginPlay();
 
 public:
+
+	UFUNCTION(BlueprintCallable, Category="Health")
+	void Damage(float damageTake);
+
+	UFUNCTION(BlueprintCallable, Category="Health")
+	void FinishAttack();
+
+	UFUNCTION(BlueprintCallable, Category="Health")
+	void FinishRoll();
+
+	UFUNCTION(BlueprintCallable, Category="Health")
+	void PlusAttack();
+	
+	UFUNCTION(BlueprintPure, Category="Health")
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; } 
+    
+	/** Getter for Current Health.*/
+	UFUNCTION(BlueprintPure, Category="Health")
+	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+
+	UFUNCTION(BlueprintCallable, Category="Health")
+	void SetCurrentHealth(float healthValue);
+
+	UFUNCTION(BlueprintPure, Category="Health")
+	FORCEINLINE float GetCoutAttack() const { return coutAttack; }
+
+	UFUNCTION(BlueprintCallable, Category="Attack")
+	void SetCoutAttack(float counthValue);
+	
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/

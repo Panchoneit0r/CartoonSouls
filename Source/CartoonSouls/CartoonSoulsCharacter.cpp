@@ -51,6 +51,7 @@ ACartoonSoulsCharacter::ACartoonSoulsCharacter()
 	CurrentHealth = MaxHealth;
 	
 	isRolling = false;
+	canAttack = true;
 	coutAttack = 0;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
@@ -78,7 +79,6 @@ void ACartoonSoulsCharacter::Damage(float damageTake)
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance != nullptr)
 	{
-		AnimInstance->Montage_Play(DamageAnimation, 1.0f);
 		SetCurrentHealth(CurrentHealth - damageTake);
 		if (CurrentHealth <= 0)
 		{
@@ -91,6 +91,7 @@ void ACartoonSoulsCharacter::FinishAttack()
 {
 	SetCoutAttack(0);
 	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
+	canAttack = true;
 }
 
 void ACartoonSoulsCharacter::FinishRoll()
@@ -102,6 +103,7 @@ void ACartoonSoulsCharacter::PlusAttack()
 {
 	int plus = GetCoutAttack() + 1;
 	SetCoutAttack(plus);
+	canAttack = true;
 }
 
 void ACartoonSoulsCharacter::SetCoutAttack(float countValue)
@@ -142,10 +144,11 @@ void ACartoonSoulsCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 void ACartoonSoulsCharacter::Attack()
 {
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		if (AnimInstance != nullptr && !isRolling && !GetCharacterMovement()->IsFalling())
+		if (AnimInstance != nullptr && !isRolling && !GetCharacterMovement()->IsFalling() && canAttack)
 		{
+			canAttack = false;
 			GetCharacterMovement()->MaxWalkSpeed = 0.0f;
-			AnimInstance->Montage_Play(AttackAnimations[coutAttack], 0.8f);
+			AnimInstance->Montage_Play(AttackAnimations[coutAttack], 1.5f);
 			/*if (coutAttack >= 2)
 			{
 				coutAttack = 0;		

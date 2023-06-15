@@ -65,7 +65,7 @@ protected:
 
 	void Roll();
 	
-	bool isRolling;
+	bool isRolling, canAttack;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Attack")
 	int coutAttack;

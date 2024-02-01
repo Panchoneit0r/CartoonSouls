@@ -56,7 +56,7 @@ class ACartoonSoulsCharacter : public ACharacter
 	TArray<UAnimMontage*> AttackAnimations;
 	
 public:
-	ACartoonSoulsCharacter();
+	ACartoonSoulsCharacter(); 
 	
 
 protected:
